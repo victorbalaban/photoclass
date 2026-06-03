@@ -1,0 +1,13 @@
+# macOS system files
+.DS_Store
+
+# Python build and cache files
+__pycache__/
+*.py[cod]
+
+# Local environment variables/secrets
+.env
+
+# Code Editor configurations
+.vscode/
+.idea/
