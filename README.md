@@ -25,4 +25,5 @@ Docker handles everything inside its own virtual containers.
    docker compose up --build
 
 To shut down the services and clear the network space, simply run:   
+    ```bash
     docker compose down

@@ -11,3 +11,6 @@ __pycache__/
 # Code Editor configurations
 .vscode/
 .idea/
+
+#FVM
+frontend/.fvm/
