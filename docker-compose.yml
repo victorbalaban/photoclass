@@ -1,18 +1,38 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: photoclass-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secretpassword
+      - POSTGRES_DB=photoclass_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   user-service:
     build:
       context: ./backend/user_service
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:secretpassword@postgres:5432/photoclass_db
+    depends_on:
+      - postgres
 
   classification-service:
     build:
       context: ./backend/classification_service
+      dockerfile: Dockerfile
     ports:
       - "8001:8001"
     volumes:
       - photo_storage:/app/storage
+    environment:
+      - ENV=development
 
 volumes:
+  postgres_data:
   photo_storage:
-    driver: local
