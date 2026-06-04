@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photoclass/features/auth/view_models/auth_view_model.dart';
 import 'features/auth/views/login_screen.dart';
+import 'core/theme/app_theme.dart';
 
 void main() {
   // ProviderScope is mandatory for Riverpod to store state
@@ -65,10 +66,7 @@ class PhotoClassApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Photo Classification Platform',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

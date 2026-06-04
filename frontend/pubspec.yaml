@@ -23,6 +23,9 @@ dependencies:
   # File picking for Web photo uploads
   file_picker: ^11.0.2
 
+  # Country picker for user profile
+  country_picker: ^2.0.27
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

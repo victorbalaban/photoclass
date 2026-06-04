@@ -14,20 +14,34 @@ class AuthViewModel extends _$AuthViewModel {
     return null;
   }
 
-Future<bool> registerUser(String username, String password) async {
+  Future<bool> registerUser({
+    required String username,
+    required String password,
+    required String name,
+    required int age,
+    required String gender,
+    required String placeOfLiving,
+    required String countryCode,
+    String? description,
+  }) async {
     state = const AsyncLoading();
     try {
       final dio = ref.read(apiClientProvider);
-      
-      // 1. Post the registration credentials to the backend
       await dio.post(
-        '/api/auth/register', 
-        data: {'username': username, 'password': password},
+        '/api/auth/register',
+        data: {
+          'username': username,
+          'password': password,
+          'name': name,
+          'age': age,
+          'gender': gender,
+          'place_of_living': placeOfLiving,
+          'country_code': countryCode,
+          'description': description,
+        },
       );
 
-      // 2. Pass the same credentials to our login method
       return await loginUser(username, password);
-      
     } on DioException catch (e, stackTrace) {
       final errorMessage = e.response?.data['detail'] ?? 'Registration failed.';
       state = AsyncValue.error(errorMessage, stackTrace);

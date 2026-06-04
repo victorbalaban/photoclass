@@ -36,7 +36,17 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     hashed_pwd = pass_security.hash_password(user_data.password)
     
     # 3. Create and save new user record
-    new_user = models.User(username=user_data.username, hashed_password=hashed_pwd)
+    new_user = models.User(
+        username=user_data.username,
+        hashed_password=hashed_pwd,
+        name=user_data.name,
+        age=user_data.age,
+        gender=user_data.gender,
+        place_of_living=user_data.place_of_living,
+        country_code=user_data.country_code,
+        description=user_data.description
+    )
+    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -45,7 +55,7 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
 
 # LOGIN
 @app.post("/api/auth/login", response_model=schemas.TokenResponse)
-def login_user(credentials: schemas.UserCreate, db: Session = Depends(get_db)):
+def login_user(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     # 1. Fetch user by username
     user = db.query(models.User).filter(models.User.username == credentials.username).first()
     
