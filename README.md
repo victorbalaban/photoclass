@@ -11,7 +11,7 @@ The platform uses a decoupled, microservices-based architecture containerized vi
 * **`frontend/`**: Reserved for the Flutter application. 
 * **`backend/user_service/`**: A lightweight FastAPI instance running on port `8000`. This will handle registration, logins, and JWT token management.
 * **`backend/classification_service/`**: A separate FastAPI instance running on port `8001`. This will handle the heavy lifting: image uploads, metadata processing, and running classification logic.
-* **Local Storage Volume**: A named Docker volume (`photo_storage`) shared with the classification service. For local development, it maps directly to `/app/storage` inside the container, saving images directly to disk without requiring external cloud accounts.
+* **Local Storage Volume**: A named Docker volume (`photo_storage`) shared with the classification service. For local development, it maps directly to `/app/shared_storage` inside the container, saving images directly to disk without requiring external cloud accounts.
 
 ---
 

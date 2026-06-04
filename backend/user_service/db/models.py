@@ -13,6 +13,8 @@ class User(Base):
     place_of_living = Column(String, index=True, nullable=False)
     country_code = Column(String(2), index=True, nullable=False) # Stores ISO alpha-2 code (e.g., 'US', 'CA')
     description = Column(String, nullable=True)
+    role = Column(String, default="user", nullable=False)
 
 # Auto-create tables for the assessment baseline
-Base.metadata.create_all(bind=engine)
+# Commented out as it might conflict with classification_service
+#Base.metadata.create_all(bind=engine)

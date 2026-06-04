@@ -26,6 +26,9 @@ dependencies:
   # Country picker for user profile
   country_picker: ^2.0.27
 
+  # Dropzone for web drag-and-drop uploads
+  desktop_drop: ^0.7.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
