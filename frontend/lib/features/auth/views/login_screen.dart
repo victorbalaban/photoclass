@@ -146,6 +146,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         decoration: const InputDecoration(labelText: 'Password'),
                         validator: (v) => (v == null || v.length < 6) ? 'Minimum 6 characters required' : null,
                         enabled: !isLoading,
+                        onFieldSubmitted: (_) => _handleSubmit(),
                       ),
                       if (_isSignUp) ...[
                         AppSpacings.verticalMd,

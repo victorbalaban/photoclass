@@ -15,3 +15,11 @@ final apiClientProvider = Provider<Dio>((ref) {
     ),
   );
 });
+
+final classificationClientProvider = Provider<Dio>((ref) {
+  return Dio(BaseOptions(
+    baseUrl: 'http://localhost:8001',
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 15),
+  ));
+});

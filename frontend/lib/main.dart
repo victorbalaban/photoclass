@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:photoclass/features/auth/view_models/auth_view_model.dart';
 import 'features/auth/views/login_screen.dart';
 import 'core/theme/app_theme.dart';
+import 'features/photo_submission/views/photo_submission_screen.dart';
 
 void main() {
   // ProviderScope is mandatory for Riverpod to store state
@@ -77,28 +78,6 @@ class PhotoClassApp extends ConsumerWidget {
 // -----
 // PLACEHOLDER VIEWS (To be moved to their feature folders later)
 // -----
-
-class PhotoSubmissionScreen extends ConsumerWidget {
-  const PhotoSubmissionScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Photo Submission View'),
-        actions: [
-          TextButton(
-            child: const Text('Logout'),
-            onPressed: () => ref.read(authViewModelProvider.notifier).logout(),
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text('Photo upload form & metadata fields go here', style: TextStyle(fontSize: 18)),
-      ),
-    );
-  }
-}
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});

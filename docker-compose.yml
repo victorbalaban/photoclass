@@ -29,9 +29,11 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - photo_storage:/app/storage
+      - photo_storage:/app/shared_storage
     environment:
-      - ENV=development
+      - DATABASE_URL=postgresql://postgres:secretpassword@postgres:5432/photoclass_db
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:
