@@ -37,7 +37,7 @@ class SubmissionsViewModel extends _$SubmissionsViewModel {
         .toList();
   }
 
-  Future<void> uploadPhotoStream(Uint8List fileBytes, String filename) async {
+  Future<PhotoSubmission?> uploadPhotoStream(Uint8List fileBytes, String filename) async {
     // Keep a backup of current items to handle errors if they arise
     final previousState = state;
     state = const AsyncLoading();
@@ -64,16 +64,44 @@ class SubmissionsViewModel extends _$SubmissionsViewModel {
       // 3. Parse server schema output and append directly to active UI state
       final freshUpload = PhotoSubmission(
         id: response.data['id'].toString(),
-        imageUrl: response.data['image_url'],
+        imageUrl: response.data['image_url'] ?? '',
         classificationTitle: response.data['classification_title'],
         timestamp: DateTime.parse(response.data['timestamp']),
       );
 
       final currentList = previousState.value ?? [];
       state = AsyncData([freshUpload, ...currentList]);
+
+      return freshUpload;
     } catch (e, stackTrace) {
       state = AsyncValue.error('Network upload failed: ${e.toString()}', stackTrace);
       state = previousState;
+      return null;
+    }
+  }
+
+  Future<bool> deletePhotoRecord(String targetId) async {
+    final previousState = state;
+    if (previousState.value == null) return false;
+
+    try {
+      final dio = ref.read(classificationClientProvider);
+      final authToken = ref.read(authViewModelProvider).value;
+
+      // Send the network DELETE instruction to port 8001
+      await dio.delete(
+        '/api/submissions/$targetId',
+        options: Options(headers: {'Authorization': 'Bearer $authToken'}),
+      );
+
+      // Perform a state change, filtering out the removed element item card
+      final cleanedList = previousState.value!.where((item) => item.id != targetId).toList();
+      state = AsyncData(cleanedList);
+      return true;
+    } catch (e) {
+      // Keep old screen layout references intact if request encounters failure drops
+      state = previousState;
+      return false;
     }
   }
 }

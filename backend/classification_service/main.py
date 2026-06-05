@@ -1,6 +1,8 @@
 import os
+import random
 import shutil
 import jwt
+import uuid
 from typing import List, Optional
 from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Security, Query
@@ -59,19 +61,26 @@ def upload_and_classify_photo(
     user_id = user_token.get("id")
     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    filename = f"{user_id}_{timestamp_str}_{file.filename}"
+    _, original_ext = os.path.splitext(file.filename)
+    clean_ext = original_ext.lower()
+
+    unique_suffix = uuid.uuid4().hex[:6]
+    
+    filename = f"sub_{user_id}_{timestamp_str}_{unique_suffix}{clean_ext}"
     file_path = os.path.join(STORAGE_DIR, filename)
     
+    # Handle file upload IO bytes stream storage mapping
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    detected_classification = f"Classified Object Focus ({file.filename})"
+    # Run classification helper (mocked for now)
+    detected_classification = run_image_classification(file_path)
 
     new_submission = models.Submission(
         user_id=user_id,
         image_path=file_path,
         classification_title=detected_classification
-    )
+      )
     db.add(new_submission)
     db.commit()
     db.refresh(new_submission)
@@ -79,6 +88,24 @@ def upload_and_classify_photo(
     new_submission.image_url = f"http://localhost:8001/static/{filename}"
     return new_submission
 
+# Placeholder function for image classification logic - to be replaced with actual ML model inference
+def run_image_classification(file_path: str) -> str:
+    """
+    Analyzes an image file path and evaluates its visual contents.
+    Currently mocked with a randomized tag router, prepared for direct ML model insertion.
+    """
+    classification_options = [
+        "Nature Photo",
+        "Portrait Canvas",
+        "Cityscape Landscape",
+        "Botanical Layout",
+        "Sci-Fi Motif",
+        "Abstract Graphic Composition",
+        "Wildlife Photography"
+    ]
+    
+    # Returns a random item from our target list array
+    return random.choice(classification_options)
 
 # get user's own submissions with public URLs for images
 @app.get("/api/submissions/me", response_model=List[schemas.SubmissionResponse])
@@ -141,3 +168,39 @@ def admin_get_all_submissions(
             "image_url": f"http://localhost:8001/static/{os.path.basename(s.image_path)}"
         } for s in results
     ]
+
+# endpoint for users to delete their own submitted photo
+@app.delete("/api/submissions/{submission_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_submission(
+    submission_id: int,
+    user_token: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user_id = user_token.get("id")
+    
+    # Fetch the submission from the database instance
+    submission = db.query(models.Submission).filter(models.Submission.id == submission_id).first()
+    
+    if not submission:
+        raise HTTPException(status_code=404, detail="Requested submission record does not exist.")
+        
+    # SECURITY CHECK: Verify the token identity matches the resource owner
+    if submission.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Access Denied: You do not own this resource container."
+        )
+        
+    # Storage: Wiping the file from the persistent Docker folder volume
+    if os.path.exists(submission.image_path):
+        try:
+            os.remove(submission.image_path)
+        except Exception as file_error:
+            # Logs disk warnings without breaking execution flow if file was already moved
+            print(f"--- DISK WARNING: Failed to remove physical asset file: {file_error} ---", flush=True)
+
+    # Database: Delete the entry row
+    db.delete(submission)
+    db.commit()
+    
+    return None

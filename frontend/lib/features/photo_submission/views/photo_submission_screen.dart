@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:desktop_drop/desktop_drop.dart';
+import 'package:photoclass/features/photo_submission/models/photo_submission.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacings.dart';
 import '../../auth/view_models/auth_view_model.dart';
 import '../view_models/submissions_view_model.dart';
+import 'widgets/upload_drop_zone.dart';
+import 'widgets/submission_history_card.dart';
 
 class PhotoSubmissionScreen extends ConsumerStatefulWidget {
   const PhotoSubmissionScreen({super.key});
@@ -15,28 +17,8 @@ class PhotoSubmissionScreen extends ConsumerStatefulWidget {
 }
 
 class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
-  bool _isDragging = false;
-
-  // Handles standard file explorer dialog browsing clicks
-  Future<void> _handleBrowseFiles() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
-      withData: true, // CRITICAL FOR FLUTTER WEB: Forces browser to cache data bytes directly
-    );
-
-    if (result != null && result.files.single.bytes != null) {
-      final file = result.files.single;
-      await ref.read(submissionsViewModelProvider.notifier).uploadPhotoStream(
-            file.bytes!,
-            file.name,
-          );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Watches the state of our network async notifier
     final submissionsAsync = ref.watch(submissionsViewModelProvider);
 
     return Scaffold(
@@ -59,67 +41,16 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // drag&drop frame
-                DropTarget(
-                  onDragEntered: (details) => setState(() => _isDragging = true),
-                  onDragExited: (details) => setState(() => _isDragging = false),
-                  onDragDone: (details) async {
-                    setState(() => _isDragging = false);
-                    if (details.files.isNotEmpty) {
-                      final dropFile = details.files.first;
-                      final bytes = await dropFile.readAsBytes();
-                      await ref.read(submissionsViewModelProvider.notifier).uploadPhotoStream(
-                            bytes,
-                            dropFile.name,
-                          );
-                    }
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    height: 240,
-                    decoration: BoxDecoration(
-                      color: _isDragging ? AppColors.accent.withValues(alpha: 0.08) : AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _isDragging ? AppColors.accent : AppColors.textMuted.withValues(alpha: 0.4),
-                        width: _isDragging ? 3 : 2,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (submissionsAsync is AsyncLoading)
-                          const CircularProgressIndicator()
-                        else ...[
-                          Icon(Icons.cloud_upload_outlined,
-                              size: 64, color: _isDragging ? AppColors.accent : AppColors.textMuted),
-                          AppSpacings.verticalSm,
-                          Text(
-                            _isDragging ? 'Drop to upload file!' : 'Drag and drop your photos here',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: _isDragging ? AppColors.accent : AppColors.textMain),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                        AppSpacings.verticalSm,
-                        const Text('Supports PNG, JPG, JPEG, or WEBP',
-                            style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                        AppSpacings.verticalMd,
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.search, size: 18),
-                          label: const Text('Browse Local Files'),
-                          onPressed: (submissionsAsync is AsyncLoading) ? null : _handleBrowseFiles,
-                        ),
-                      ],
-                    ),
-                  ),
+                // Photo Upload Drop Zone with File Picker
+                UploadDropZone(
+                  submissionsAsync: submissionsAsync,
+                  onBrowseFiles: _handleBrowseFiles,
+                  onUploadComplete: _showUploadConfirmationDialog,
                 ),
 
                 AppSpacings.verticalLg,
 
-                // render historical submission from server
+                // Submission History Section with Async Loading/Error/Data states
                 submissionsAsync.when(
                   loading: () => const Padding(
                     padding: EdgeInsets.all(AppSpacings.xxl),
@@ -135,7 +66,7 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          items.length > 0 ? 'Your Submission' : 'Your Submissions (${items.length})',
+                          items.length > 1 ? 'Your Submissions (${items.length})' : 'Your Submission',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         AppSpacings.verticalMd,
@@ -167,59 +98,11 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
                             ),
                             itemBuilder: (context, index) {
                               final photo = items[index];
-                              return Card(
-                                color: AppColors.surface,
-                                clipBehavior: Clip.antiAlias,
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                      child: Container(
-                                        color: Colors.blueGrey[50],
-                                        child: photo.imageUrl.isNotEmpty
-                                            ? Image.network(
-                                                photo.imageUrl,
-                                                fit: BoxFit.cover,
-                                                // Render placeholder loading progressions
-                                                loadingBuilder: (context, child, loadingProgress) {
-                                                  if (loadingProgress == null) return child;
-                                                  return const Center(
-                                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                                  );
-                                                },
-                                                // Fallback in case of network issues
-                                                errorBuilder: (context, error, stackTrace) => const Icon(
-                                                  Icons.broken_image,
-                                                  color: AppColors.textMuted,
-                                                ),
-                                              )
-                                            : const Icon(Icons.image, size: 40, color: AppColors.textMuted),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(AppSpacings.sm),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            photo.classificationTitle,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textMain),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            '${photo.timestamp.hour}:${photo.timestamp.minute.toString().padLeft(2, '0')}',
-                                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
+                              // Submission History Card for each photo
+                              return SubmissionHistoryCard(
+                                photo: photo,
+                                onTap: () => _showFullScaleImageDialog(photo),
+                                onDeleteRequested: () => _showDeleteConfirmationDialog(photo),
                               );
                             },
                           ),
@@ -231,6 +114,150 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Handles the file picking and upload process when the user clicks the "Browse Files" button.
+  Future<void> _handleBrowseFiles() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+      withData: true,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.single.bytes != null) {
+      final file = result.files.single;
+      final uploadedItem = await ref.read(submissionsViewModelProvider.notifier).uploadPhotoStream(
+            file.bytes!,
+            file.name,
+          );
+      if (uploadedItem != null) {
+        _showUploadConfirmationDialog(uploadedItem);
+      }
+    }
+  }
+
+  /// Displays a confirmation dialog with the classification result after a successful upload.
+  void _showUploadConfirmationDialog(PhotoSubmission item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 26),
+            SizedBox(width: 8),
+            Text('Analysis Completed'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                color: Colors.blueGrey[50],
+                height: 200,
+                child: Image.network(item.imageUrl, fit: BoxFit.cover),
+              ),
+            ),
+            AppSpacings.verticalMd,
+            const Text('Classification Result:',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(item.classificationTitle,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textMain)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Displays a full-scale view of the selected photo in a dialog.
+  void _showFullScaleImageDialog(PhotoSubmission photo) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(AppSpacings.xl),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            GestureDetector(onTap: () => Navigator.of(context).pop()),
+            Container(
+              constraints: const BoxConstraints(maxWidth: 1000, maxHeight: 800),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppBar(
+                    title: Text(photo.classificationTitle, style: const TextStyle(color: AppColors.textMain)),
+                    backgroundColor: AppColors.surface,
+                    elevation: 0,
+                    leading: const CloseButton(color: AppColors.textMain),
+                  ),
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacings.md),
+                      child: InteractiveViewer(
+                        maxScale: 4.0,
+                        child: Image.network(photo.imageUrl, fit: BoxFit.contain),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Displays a confirmation dialog before permanently deleting a photo.
+  void _showDeleteConfirmationDialog(PhotoSubmission photo) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 26),
+            SizedBox(width: 8),
+            Text('Permanently Delete Photo?'),
+          ],
+        ),
+        content: const Text(
+            'Are you sure you want to delete the photo? This action removes it entirely and cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              final success = await ref.read(submissionsViewModelProvider.notifier).deletePhotoRecord(photo.id);
+              if (!mounted) return;
+              if (!success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Error: Could not successfully complete deletion.')),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
