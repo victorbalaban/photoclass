@@ -34,7 +34,7 @@ final class SubmissionsViewModelProvider extends $AsyncNotifierProvider<
 }
 
 String _$submissionsViewModelHash() =>
-    r'93530739c841f1015c8df01ee34278573ae93bc4';
+    r'2070b9c33dac5709ece12c73244fa6ca7f23a154';
 
 abstract class _$SubmissionsViewModel
     extends $AsyncNotifier<List<PhotoSubmission>> {

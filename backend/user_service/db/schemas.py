@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Optional
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
@@ -26,3 +27,11 @@ class UserResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    age: Optional[int] = Field(None, ge=0, le=120)
+    gender: Optional[str] = None
+    place_of_living: Optional[str] = None
+    country_code: Optional[str] = Field(None, max_length=2)
+    description: Optional[str] = None    

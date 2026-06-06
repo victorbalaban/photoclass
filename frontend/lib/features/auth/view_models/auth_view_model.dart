@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:photoclass/features/auth/models/user_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/network/api_client.dart';
 
@@ -14,34 +15,16 @@ class AuthViewModel extends _$AuthViewModel {
     return null;
   }
 
-  Future<bool> registerUser({
-    required String username,
-    required String password,
-    required String name,
-    required int age,
-    required String gender,
-    required String placeOfLiving,
-    required String countryCode,
-    String? description,
-  }) async {
+  Future<bool> registerUser(UserModel user) async {
     state = const AsyncLoading();
     try {
       final dio = ref.read(apiClientProvider);
       await dio.post(
         '/api/auth/register',
-        data: {
-          'username': username,
-          'password': password,
-          'name': name,
-          'age': age,
-          'gender': gender,
-          'place_of_living': placeOfLiving,
-          'country_code': countryCode,
-          'description': description,
-        },
+        data: user.toJson(),
       );
 
-      return await loginUser(username, password);
+      return await loginUser(user.username, user.password);
     } on DioException catch (e, stackTrace) {
       final errorMessage = e.response?.data['detail'] ?? 'Registration failed.';
       state = AsyncValue.error(errorMessage, stackTrace);
