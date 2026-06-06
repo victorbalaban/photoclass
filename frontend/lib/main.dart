@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photoclass/features/auth/view_models/auth_view_model.dart';
+import 'package:photoclass/features/auth/views/user_profile_screen.dart';
 import 'features/auth/views/login_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/photo_submission/views/photo_submission_screen.dart';
@@ -54,6 +55,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/submit', builder: (context, state) => const PhotoSubmissionScreen()),
       GoRoute(path: '/admin', builder: (context, state) => const AdminDashboardScreen()),
+      GoRoute(path: '/profile', builder: (context, state) => const UserProfileScreen()),
     ],
   );
 });

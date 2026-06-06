@@ -24,3 +24,26 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def verify_and_decode_token(credentials = None) -> dict:
+    from fastapi import HTTPException, status, Security
+    from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+    # Fallback to local security instantiation if FastAPI dependencies evaluate
+    security_agent = HTTPBearer()
+    
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization headers parameters."
+        )
+        
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload  # Returns the un-falsifiable dict map: {"sub": username, "id": user_id, "exp": ...}
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session has expired or authentication credentials are invalid."
+        )    

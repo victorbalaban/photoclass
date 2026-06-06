@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:photoclass/features/auth/models/user_model.dart';
 import '../../../core/theme/app_spacings.dart';
 import '../view_models/auth_view_model.dart';
 
@@ -54,16 +55,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return;
       }
 
-      await ref.read(authViewModelProvider.notifier).registerUser(
-            username: username,
-            password: password,
-            name: _nameController.text.trim(),
-            age: int.parse(_ageController.text.trim()),
-            gender: _selectedGender!,
-            placeOfLiving: _locationController.text.trim(),
-            countryCode: _selectedCountryCode!,
-            description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
-          );
+      final userProfile = UserModel(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+        name: _nameController.text.trim(),
+        age: int.tryParse(_ageController.text) ?? 0,
+        gender: _selectedGender!,
+        placeOfLiving: _locationController.text.trim(),
+        countryCode: _selectedCountryCode!,
+        description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+      );
+
+      await ref.read(authViewModelProvider.notifier).registerUser(userProfile);
     } else {
       await ref.read(authViewModelProvider.notifier).loginUser(username, password);
     }
@@ -200,7 +203,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     onSelect: (Country country) {
                                       setState(() {
                                         _selectedCountryCode = country.countryCode;
-                                        _countryButtonText = '${country.flagEmoji} ${country.name} (${country.countryCode})';
+                                        _countryButtonText =
+                                            '${country.flagEmoji} ${country.name} (${country.countryCode})';
                                       });
                                     },
                                   );

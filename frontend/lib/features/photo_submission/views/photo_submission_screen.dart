@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:go_router/go_router.dart';
 import 'package:photoclass/features/photo_submission/models/photo_submission.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacings.dart';
@@ -26,6 +27,13 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
         title: const Text('Photo Classification Dashboard'),
         backgroundColor: AppColors.surface,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.account_circle_outlined, color: AppColors.primary, size: 26),
+          tooltip: 'Your Profile Settings',
+          onPressed: () {
+            context.go('/profile');
+          },
+        ),
         actions: [
           TextButton(
             child: const Text('Logout', style: TextStyle(color: AppColors.primary)),
