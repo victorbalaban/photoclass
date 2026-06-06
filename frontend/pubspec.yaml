@@ -28,6 +28,7 @@ dependencies:
 
   # Dropzone for web drag-and-drop uploads
   desktop_drop: ^0.7.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
