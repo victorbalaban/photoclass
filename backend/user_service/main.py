@@ -70,7 +70,7 @@ def login_user(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
         )
     
     # 3. Issue signed cryptographic session token token
-    token = pass_security.create_access_token(data={"sub": user.username, "id": user.id})
+    token = pass_security.create_access_token(data={"sub": user.username, "id": user.id, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 
 # get user profile

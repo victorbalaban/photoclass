@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photoclass/features/auth/models/user_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../core/network/api_client.dart';
+import 'dart:convert';
 
-// This is required for Riverpod's build_runner code generator
 part 'auth_view_model.g.dart';
 
 @riverpod
@@ -64,3 +65,23 @@ class AuthViewModel extends _$AuthViewModel {
     state = const AsyncData(null); // Clear token, forcing route guard to bounce user back to login
   }
 }
+
+final userRoleProvider = Provider<String>((ref) {
+  final token = ref.watch(authViewModelProvider).value;
+  if (token == null) return 'user';
+
+  try {
+    // Split the JWT to inspect the claims payload signature natively
+    final parts = token.split('.');
+    if (parts.length != 3) return 'user';
+
+    final payloadString = String.fromCharCodes(
+      base64Url.decode(base64Url.normalize(parts[1])),
+    );
+
+    final Map<String, dynamic> payload = jsonDecode(payloadString);
+    return payload['role'] ?? 'user'; // Pulls the exact "admin" or "user" string from API
+  } catch (_) {
+    return 'user';
+  }
+});

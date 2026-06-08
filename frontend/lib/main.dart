@@ -39,6 +39,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authViewModelProvider);
       final bool isLoggedIn = authState.value != null;
       final bool isAtLoginScreen = state.matchedLocation == '/';
+      final String userRole = ref.read(userRoleProvider);
 
       // Guard Rule A: If not logged in and trying to go to a private area -> move to login
       if (!isLoggedIn && !isAtLoginScreen) {
@@ -47,6 +48,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Guard Rule B: If logged in and trying to go to login screen -> Forward to workspace
       if (isLoggedIn && isAtLoginScreen) {
+        return '/submit';
+      }
+
+      // Guard Rule C: If logged in but trying to access admin panel without admin role -> Forward to workspace
+      if (state.matchedLocation == '/admin' && userRole != 'admin') {
         return '/submit';
       }
 

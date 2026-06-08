@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photoclass/features/photo_submission/models/photo_submission.dart';
+import 'package:photoclass/features/photo_submission/views/widgets/admin_gateway_banner.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacings.dart';
 import '../../auth/view_models/auth_view_model.dart';
@@ -21,6 +22,7 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
   @override
   Widget build(BuildContext context) {
     final submissionsAsync = ref.watch(submissionsViewModelProvider);
+    final userRole = ref.watch(userRoleProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,6 +51,8 @@ class _PhotoSubmissionScreenState extends ConsumerState<PhotoSubmissionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Conditional Admin Gateway Banner
+                if (userRole == 'admin') const AdminGatewayBanner(),
                 // Photo Upload Drop Zone with File Picker
                 UploadDropZone(
                   submissionsAsync: submissionsAsync,
