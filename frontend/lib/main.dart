@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:photoclass/features/admin_panel/views/admin_dashboard_screen.dart';
 import 'package:photoclass/features/auth/view_models/auth_view_model.dart';
 import 'package:photoclass/features/auth/views/user_profile_screen.dart';
 import 'features/auth/views/login_screen.dart';
@@ -38,6 +39,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authViewModelProvider);
       final bool isLoggedIn = authState.value != null;
       final bool isAtLoginScreen = state.matchedLocation == '/';
+      final String userRole = ref.read(userRoleProvider);
 
       // Guard Rule A: If not logged in and trying to go to a private area -> move to login
       if (!isLoggedIn && !isAtLoginScreen) {
@@ -46,6 +48,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Guard Rule B: If logged in and trying to go to login screen -> Forward to workspace
       if (isLoggedIn && isAtLoginScreen) {
+        return '/submit';
+      }
+
+      // Guard Rule C: If logged in but trying to access admin panel without admin role -> Forward to workspace
+      if (state.matchedLocation == '/admin' && userRole != 'admin') {
         return '/submit';
       }
 
@@ -72,33 +79,6 @@ class PhotoClassApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-//TODO: remove placeholder views and implement actual features.
-// -----
-// PLACEHOLDER VIEWS (To be moved to their feature folders later)
-// -----
-
-class AdminDashboardScreen extends ConsumerWidget {
-  const AdminDashboardScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Dashboard View'),
-        actions: [
-          TextButton(
-            child: const Text('Logout'),
-            onPressed: () => ref.read(authViewModelProvider.notifier).logout(),
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text('Admin metrics and filters go here', style: TextStyle(fontSize: 18)),
-      ),
     );
   }
 }

@@ -138,7 +138,7 @@ def require_admin(user_token: dict = Depends(get_current_user), db: Session = De
 def admin_get_all_submissions(
     age: Optional[int] = Query(None),
     gender: Optional[str] = Query(None),
-    location: Optional[str] = Query(None),
+    place_of_living: Optional[str] = Query(None),
     country_code: Optional[str] = Query(None),
     user_token: dict = Depends(require_admin),
     db: Session = Depends(get_db)
@@ -149,8 +149,8 @@ def admin_get_all_submissions(
         query = query.filter(models.User.age == age)
     if gender:
         query = query.filter(models.User.gender == gender)
-    if location:
-        query = query.filter(models.User.place_of_living.ilike(f"%{location}%"))
+    if place_of_living:
+        query = query.filter(models.User.place_of_living.ilike(f"%{place_of_living}%"))
     if country_code:
         query = query.filter(models.User.country_code == country_code.upper())
         
@@ -164,6 +164,7 @@ def admin_get_all_submissions(
             "user_name": s.owner.name,
             "user_age": s.owner.age,
             "user_gender": s.owner.gender,
+            "user_place_of_living": s.owner.place_of_living,
             "user_country": s.owner.country_code,
             "image_url": f"http://localhost:8001/static/{os.path.basename(s.image_path)}"
         } for s in results

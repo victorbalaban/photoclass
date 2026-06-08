@@ -18,6 +18,7 @@ class AdminSubmissionResponse(BaseModel):
     user_name: str
     user_age: int
     user_gender: str
+    user_place_of_living: str
     user_country: str
     image_url: str
 
