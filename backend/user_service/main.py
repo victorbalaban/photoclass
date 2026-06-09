@@ -20,6 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# used for testing
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 # Register
 @app.post("/api/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)

@@ -44,6 +44,16 @@ fvm dart run build_runner build --delete-conflicting-outputs
  **How to install FVM:**
  https://fvm.app/documentation/getting-started/installation
 
+ ### Testing
+   * Backend: it has a test example:
+      ```
+      docker compose exec user-service python -m pytest
+      ```
+   * Frontend: a simple unit mocked unit test for register User
+      ```
+      fvm flutter test test/auth_view_model_test.dart
+      ```
+
 ## Managing Environment Variables (Currenly it uses placeholder hardcoded values)   
 
 Right now in the code, we use some placeholder text values for things like secrets (for example, the **`JWT_SECRET`** key). This is okay for testing on your own machine, but not for production.
