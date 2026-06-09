@@ -168,3 +168,7 @@ The code inside the **`lib/`** directory is cleanly split up to separate global 
 
 ### Adaptive Layout Design
 Every screen component is designed to be adaptive. Even though only Web layout is required for now, widgets use things like LayoutBuilder or check size parameters. For example, on a wide desktop browser screen, input fields and demographic filters are shown side-by-side inside a Row, but on a narrow mobile screen, they automatically wrap and stack vertically in a Column so the user interface never clips or breaks.
+
+## CI/CD Automation Strategy
+
+The following document explains it in depth: [CI/CD Documentation](./CI-CD.md)
