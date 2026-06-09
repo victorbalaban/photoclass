@@ -20,11 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def health_check():
-    return {"status": "User Service is OK"}
 
-# REGISTER
+# Register
 @app.post("/api/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     # 1. Check if username already exists
@@ -56,7 +53,7 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     
     return new_user
 
-# LOGIN
+# Login
 @app.post("/api/auth/login", response_model=schemas.TokenResponse)
 def login_user(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     # 1. Fetch user by username
@@ -73,7 +70,7 @@ def login_user(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     token = pass_security.create_access_token(data={"sub": user.username, "id": user.id, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
 
-# get user profile
+# Get user profile
 @app.get("/api/users/profile")
 def get_user_profile(
     credentials: HTTPAuthorizationCredentials = Depends(security_agent),
@@ -94,7 +91,7 @@ def get_user_profile(
         "description": user.description
     }
 
-# update user profile
+# Update user profile
 @app.put("/api/users/profile")
 def update_user_profile(
     profile_data: schemas.ProfileUpdate,

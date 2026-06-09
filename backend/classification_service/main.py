@@ -43,12 +43,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Security(securi
     except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session token.")
 
-@app.get("/")
-def health_check():
-    return {"status": "Classification engine is online and running on port 8001"}
 
-
-# endpoint for photo upload and classification
+# Photo upload and classification
 @app.post("/api/submissions/upload", response_model=schemas.SubmissionResponse, status_code=status.HTTP_201_CREATED)
 def upload_and_classify_photo(
     file: UploadFile = File(...),
@@ -107,7 +103,7 @@ def run_image_classification(file_path: str) -> str:
     # Returns a random item from our target list array
     return random.choice(classification_options)
 
-# get user's own submissions with public URLs for images
+# Get user's own submissions with public URLs for images
 @app.get("/api/submissions/me", response_model=List[schemas.SubmissionResponse])
 def get_my_submissions(user_token: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     user_id = user_token.get("id")
@@ -121,7 +117,7 @@ def get_my_submissions(user_token: dict = Depends(get_current_user), db: Session
     return results
 
 
-# admin check
+# Admin check
 def require_admin(user_token: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     user_id = user_token.get("id")
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -133,7 +129,7 @@ def require_admin(user_token: dict = Depends(get_current_user), db: Session = De
         )
     return user
 
-# admin endpoint to retrieve all submissions with optional filters for user demographics and location
+# Admin endpoint to retrieve all submissions with optional filters for user demographics and location
 @app.get("/api/submissions/admin", response_model=List[schemas.AdminSubmissionResponse])
 def admin_get_all_submissions(
     age: Optional[int] = Query(None),
@@ -170,7 +166,8 @@ def admin_get_all_submissions(
         } for s in results
     ]
 
-# endpoint for users to delete their own submitted photo
+
+# Endpoint for users to delete their own submitted photo
 @app.delete("/api/submissions/{submission_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_submission(
     submission_id: int,
