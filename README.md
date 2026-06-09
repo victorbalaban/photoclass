@@ -11,6 +11,8 @@ The platform uses a decoupled, microservices-based architecture containerized vi
 * **`backend/classification_service/`**: A separate FastAPI instance running on port `8001`. This will handle the heavy lifting: image uploads, metadata processing, and running classification logic.
 * **Local Storage Volume**: A named Docker volume (`photo_storage`) shared with the classification service. For local development, it maps directly to `/app/shared_storage` inside the container, saving images directly to disk without requiring external cloud accounts.
 
+The following image explains it visually: [Diagram](./photo_class_arch.jpg)
+
 ---
 
 ## How to Run Locally
